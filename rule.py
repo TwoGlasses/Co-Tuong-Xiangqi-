@@ -70,7 +70,7 @@ class ruleset(object):
         
         if is_in_board(new_pos): 
             if not is_interfered(board_map, old_pos, new_pos):
-                return  getattr(moving_ruleset, self.piece(old_pos).type)(old_pos, new_pos)
+                return  getattr(moving_ruleset, self.get_piece(old_pos).type)(old_pos, new_pos)
             elif is_enemy(self.get_piece(old_pos), self.get_piece(new_pos)): 
                 #Update the map, the occupant get replaced by the new piece 
                 self.get_eaten(self.get_piece(old_pos), old_pos, new_pos)
