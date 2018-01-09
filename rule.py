@@ -1,24 +1,37 @@
-import re 
-import sys 
-
-print("Hello") 
-print("How are you")
+from piece import Piece  
 
 ''' 
 Ruleset for Xiangqi chesspiece: soldier, cannon, chariot, horse, elephant, advisor, general 
 ''' 
+
 class Pos(object):
+
     '''
     A class for storing position of chess piece
     ''' 
+
     def __init__(self, x, y):
         self.x = x
         self.y = y 
     
 class ruleset(object): 
-    def __init__(self):
+
+    '''
+    ### Setting move ruleset class
+    Cannon, Chariot : straight line movement with maximum step of 10 or 9 according to respective axes
+    Horse: L shape movement with the longer stroke takes 2 unit, short stroke takes 1 unit.
+
+    Interfering rule: 
+    __ Define how a movement of a chesspiece cannot be carried out __
+    Canon, Chariot : straight line movement will be 
+
+    '''
+
+    def __init__(self, board_map_2d):
         self._DOMAIN_X = 8
         self._DOMAIN_Y = 9
+        self._IS_EMPTY = '  .  '
+        self.board_map_2d = board_map_2d
     
     def is_in_board(self, new_pos):
         if ( pos.x >= 0 and pos.x <= 8)
@@ -26,14 +39,28 @@ class ruleset(object):
             return True 
         else : return False 
 
-    def is_interfered(self, board_map, old_pos, new_pos):
-        pass 
+    def is_interfered(self, old_pos, new_pos):
+        return board_map[new_pos.y][new_pos.x] != self._IS_EMPTY
+
+    def is_enemy(self, Piece_1, Piece_2):
+        return Piece_1.team != Piece_2.team
+
+    def get_piece(self, pos):
+        return self.board_map_2d[pos.y][pos.x]
+
+    def get_eaten(self, eater, pos): 
+        eater = self.board_map_2d[pos.y][pos.x]
 
     def soldier_upper_half(self, old_pos, new_pos): 
         if is_in_board(new_pos): 
             if not is_interfered(board_map, old_pos, new_pos):
                 sol = moving_ruleset():
                 return sol.soldier_upper_half(old_pos, new_pos)
+            elif is_enemy(self.get_piece(old_pos), self.get_piece(new_pos)): 
+                #Update the map, the occupant get replaced by the new piece 
+                self.get_eaten(self.get_piece(old_pos), new_pos)
+                
+
 
     def soldier_lower_half(self, old_pos, new_pos):
         pass 
