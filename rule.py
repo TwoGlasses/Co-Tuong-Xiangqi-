@@ -43,8 +43,7 @@ class ruleset(object):
         self.board_map_2d = board_map_2d
     
     def is_in_board(self, new_pos):
-        if ( pos.x >= 0 and pos.x <= 8)
-            and ( pos.y >= 0 and pos.y <= 9):
+        if ( pos.x >= 0 and pos.x <= 8) and ( pos.y >= 0 and pos.y <= 9):
             return True 
         else : return False 
 
@@ -61,10 +60,16 @@ class ruleset(object):
         eater = self.board_map_2d[pos.y][pos.x]
 
     def move_allowed(self, old_pos, new_pos): 
+        '''
+        Call functions from moving_ruleset by the names.
+
+        Soldier case is not done. 
+        TO DO: define Piece object type further into smaller categories of soldiers 
+        '''
+        
         if is_in_board(new_pos): 
             if not is_interfered(board_map, old_pos, new_pos):
-                sol = moving_ruleset():
-                return sol.soldier_upper_half(old_pos, new_pos)
+                return  getattr(moving_ruleset, self.piece(old_pos).type)(old_pos, new_pos)
             elif is_enemy(self.get_piece(old_pos), self.get_piece(new_pos)): 
                 #Update the map, the occupant get replaced by the new piece 
                 self.get_eaten(self.get_piece(old_pos), new_pos)
@@ -77,6 +82,9 @@ class moving_ruleset(object):
     Not checking in_board and get_interfered
     ''' 
 
+    def __init__(self):
+        pass
+
     def soldier_upper_half(self, old_pos, new_pos):
         if new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == 1: 
             return True 
@@ -88,22 +96,22 @@ class moving_ruleset(object):
         else: return False
 
     def soldier_passed_river_upper_half(self, old_pos, new_pos): 
-        if ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == 1 ) #Going forth     
-            or ( new_pos.x - old_pos.x == 1 and new_pos.y - old.pos.y == 0) #Going to the left
-                or ( new_pos.x - old_pos.x == -1 and new_pos.y - old_pos.y == 0 ): #Going to the right
+        if ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == 1 ) or  \
+            ( new_pos.x - old_pos.x == 1 and new_pos.y - old.pos.y == 0) or \
+                ( new_pos.x - old_pos.x == -1 and new_pos.y - old_pos.y == 0 ): #Going to the right
             return True 
         else: return False
 
     def soldier_passed_river_lower_half(self, old_pos, new_pos):
-        if ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == -1 ) #Going forth     
-            or ( new_pos.x - old_pos.x == 1 and new_pos.y - old.pos.y == 0) #Going to the left
-                or ( new_pos.x - old_pos.x == -1 and new_pos.y - old_pos.y == 0 ): #Going to the right
+        if ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == -1 ) or \
+            ( new_pos.x - old_pos.x == 1 and new_pos.y - old.pos.y == 0) or \
+                ( new_pos.x - old_pos.x == -1 and new_pos.y - old_pos.y == 0 ): #Going to the right
             return True 
         else: return False
 
     def cannon(self, old_pos, new_pos):
-        if ( new_pos.x - old_pos.x != 0 and new_pos.y -  old_pos.y == 0)
-            or ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y != 0):
+        if ( new_pos.x - old_pos.x != 0 and new_pos.y -  old_pos.y == 0) or \
+            ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y != 0):
             return True 
         else: return False 
 
@@ -113,21 +121,21 @@ class moving_ruleset(object):
         else: return False 
 
     def general(self, old_pos, new_pos):
-        if ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == 1 ) #Going forth     
-            or ( new_pos.x - old_pos.x == 1 and new_pos.y - old.pos.y == 0) #Going to the left
-                or ( new_pos.x - old_pos.x == -1 and new_pos.y - old_pos.y == 0 ) #Going to the right
-                    or ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == -1)#Going back 
+        if ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == 1 ) or \
+            ( new_pos.x - old_pos.x == 1 and new_pos.y - old.pos.y == 0) or \
+                ( new_pos.x - old_pos.x == -1 and new_pos.y - old_pos.y == 0 ) or \
+                    ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == -1): #Going back 
             return True 
         else: return False 
 
     def horse(self, old_pos, new_pos):
-        if ( abs(new_pos.x - old_pos.x) == 2 and abs(new_pos.y - old_pos.y) == 1 )
+        if ( abs(new_pos.x - old_pos.x) == 2 and abs(new_pos.y - old_pos.y) == 1 )\
             or ( abs(new_pos.x - old_pos.x) == 1 and abs(new_pos.y - old_pos.y) == 2):
             return True
         else: return False
 
     def chariot(self, old_pos, new_pos):
-        if ( new_pos.x - old_pos.x != 0 and new_pos.y -  old_pos.y == 0)
+        if ( new_pos.x - old_pos.x != 0 and new_pos.y -  old_pos.y == 0) \
             or ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y != 0):
             return True 
         else: return False 

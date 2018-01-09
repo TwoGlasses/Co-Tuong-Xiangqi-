@@ -147,7 +147,7 @@ class Game:
             if type == 'general':
                 pass
 
-    def update(self):
+    def update(self, piece, new_pos):
         pass
 
 
