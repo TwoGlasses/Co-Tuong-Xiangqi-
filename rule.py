@@ -17,13 +17,22 @@ class Pos(object):
 class ruleset(object): 
 
     '''
-    ### Setting move ruleset class
-    Cannon, Chariot : straight line movement with maximum step of 10 or 9 according to respective axes
+    ## Setting down ruleset for chesspieces' movements
+    ### Movements of pieces
+    Cannon: straight line movement with maximum step of 10 or 9 according to respective axes
+    Chariot: straight line movement with maximum step of 10 or 9 according to respective axes
     Horse: L shape movement with the longer stroke takes 2 unit, short stroke takes 1 unit.
-
-    Interfering rule: 
-    __ Define how a movement of a chesspiece cannot be carried out __
-    Canon, Chariot : straight line movement will be 
+    Elephant: Diagonal jump of 2 on x axis and 2 on y axis (pos.x +/- 2, pos.y +/- 2) with pos if the elephant position
+    Advisor: Diagonal jump of 1 both x and y axis (pos.x +/- 1, pos.y +/- 1)
+    General: Moving parallel to either axes, 1 unit each time. 
+    Soldier: Same with general, no going backwards respectively to its general.
+    
+    ### Interfering rule: Define how a movement of a chesspiece cannot be carried out.
+    Canon: another piece in its straight pathway 
+    Chariot: another piece in its straight pathway 
+    Horse: A piece placed at the middle of the longer stroke 
+    Elephant: A piece placed at the middle of the diagonal jump (pos.x +/- 1, pos.y +/- 1) with pos is the elephant position
+    
 
     '''
 
@@ -51,7 +60,7 @@ class ruleset(object):
     def get_eaten(self, eater, pos): 
         eater = self.board_map_2d[pos.y][pos.x]
 
-    def soldier_upper_half(self, old_pos, new_pos): 
+    def move_allowed(self, old_pos, new_pos): 
         if is_in_board(new_pos): 
             if not is_interfered(board_map, old_pos, new_pos):
                 sol = moving_ruleset():
@@ -59,35 +68,8 @@ class ruleset(object):
             elif is_enemy(self.get_piece(old_pos), self.get_piece(new_pos)): 
                 #Update the map, the occupant get replaced by the new piece 
                 self.get_eaten(self.get_piece(old_pos), new_pos)
-                
-
-
-    def soldier_lower_half(self, old_pos, new_pos):
-        pass 
-
-    def soldier_passed_river_upper_half(self, old_pos, new_pos):
-        pass 
-
-    def soldier_passed_river_lower_half(self, old_pos, new_pos):
-        pass
-
-    def cannon(self, old_pos, new_pos):
-        pass 
-
-    def chariot(self, old_pos, new_pos):
-        pass 
-    
-    def horse(self, old_pos, new_pos):
-        pass
-    
-    def elephant(self, old_pos, new_pos):
-        pass 
-
-    def advisor(self, old_pos, new_pos):
-        pass 
-
-    def general(self, old_pos, new_pos):
-        pass 
+            else: return False 
+        else: return False 
 
 class moving_ruleset(object):
     '''
