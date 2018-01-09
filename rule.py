@@ -56,8 +56,9 @@ class ruleset(object):
     def get_piece(self, pos):
         return self.board_map_2d[pos.y][pos.x]
 
-    def get_eaten(self, eater, pos): 
-        eater = self.board_map_2d[pos.y][pos.x]
+    def get_eaten(self, eater, old_pos, new_pos): 
+        self.board_map_2d[new_pos.y][new_pos.x] = eater 
+        self.board_map_2d[old_pos.y][old_pos.x] = self._IS_EMPTY
 
     def move_allowed(self, old_pos, new_pos): 
         '''
@@ -72,7 +73,7 @@ class ruleset(object):
                 return  getattr(moving_ruleset, self.piece(old_pos).type)(old_pos, new_pos)
             elif is_enemy(self.get_piece(old_pos), self.get_piece(new_pos)): 
                 #Update the map, the occupant get replaced by the new piece 
-                self.get_eaten(self.get_piece(old_pos), new_pos)
+                self.get_eaten(self.get_piece(old_pos), old_pos, new_pos)
             else: return False 
         else: return False 
 
