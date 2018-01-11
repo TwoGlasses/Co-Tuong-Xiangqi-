@@ -37,8 +37,22 @@ class ruleset(object):
     '''
 
     def __init__(self, board_map_2d):
+        '''
+        Define domains of upper area (AREA 1 - Upper half), lower area (AREA 2 - Lower half); 
+        AREA 1 palace - Northern palace, AREA 2 palace - Southern palace;
+        Place-holder for empty position: _IS_EMPTY 
+
+        @param board_map_2d 
+        '''
         self._DOMAIN_X = 8
         self._DOMAIN_Y = 9
+        self._DOMAIN_X_UPPER_HALF = self._DOMAIN_X_LOWER_HALF = [0, 8]
+        self._DOMAIN_X_NORTHERN_PALACE = self._DOMAIN_X_SOUTHERN_PALACE = [3, 5] 
+        self._DOMAIN_Y_UPPER_HALF = [0, 4]         
+        self._DOMAIN_Y_LOWER_HALF = [5, 9]
+        self._DOMAIN_Y_NORTHERN_PALACE = [0, 2]
+        self._DOMAIN_Y_SOUTHERN_PALACE = [7, 9]
+
         self._IS_EMPTY = '  .  '
         self.board_map_2d = board_map_2d
     
@@ -46,6 +60,55 @@ class ruleset(object):
         if ( pos.x >= 0 and pos.x <= 8) and ( pos.y >= 0 and pos.y <= 9):
             return True 
         else : return False 
+
+    def is_in_upper_half(self, new_pos):
+        if ( pos.x >= self._DOMAIN_X_UPPER_HALF[0] and pos.x <= self._DOMAIN_X_UPPER_HALF[1]) and ( pos.y >= self._DOMAIN_Y_UPPER_HALF[0] and pos.y <= self._DOMAIN_Y_UPPER_HALF[1]):
+            return True 
+        else : return False 
+    
+    def is_in_lower_half(self, new_pos):
+        if ( pos.x >= self._DOMAIN_X_LOWER_HALF[0] and pos.x <= self._DOMAIN_X_LOWER_HALF[1]) and ( pos.y >= self._DOMAIN_Y_LOWER_HALF[0] and pos.y <= self._DOMAIN_Y_LOWER_HALF[1]):
+            return True 
+        else : return False 
+
+    def is_in_northern_palace(self, new_pos):
+        if ( pos.x >= self._DOMAIN_Y_NORTHERN_PALACE[0] and pos.x <= self._DOMAIN_X_NORTHERN_PALACE[1]) and ( pos.y >= self._DOMAIN_Y_NORTHERN_PALACE[0] and pos.y <= self._DOMAIN_Y_NORTHERN_PALACE[1]):
+            return True 
+        else : return False 
+
+    def is_in_southern_palace(self, new_pos):
+        if ( pos.x >= self._DOMAIN_X_SOUTHERN_PALACE[0] and pos.x <= self._DOMAIN_X_SOUTHERN_PALACE[1]) and ( pos.y >= self._DOMAIN_Y_SOUTHERN_PALACE[0] and pos.y <= self._DOMAIN_Y_SOUTHERN_PALACE[1]):
+            return True 
+        else : return False 
+
+    def you_shall_not_pass(self, old_pos, new_pos):
+        imperial_guard = ['elephant', 'advisor', 'general']
+        the_one = self.get_piece(old_pos).type 
+        if the_one in imperial_guard: 
+            the_origin_coords = the_one.history[-1]            
+            if the_one == imperial_guard[0]: 
+                if self.is_in_lower_half(the_origin_coords): 
+                    return self.is_in_lower_half(new_pos)
+                elif self.is_in_upper_half(the_origin_coords): 
+                    return self.is_in_upper_half(new_pos)
+                else: 
+                    raise ValueError('The Elephant is travelling oversea!!! MovRuleSpecial_1: Chesspiece is not detected in board')
+            elif the_one == imperial_guard[1]: 
+                if self.is_in_northern_palace(the_origin_coords):
+                    return self.is_in_northern_palace(new_pos)
+                elif self.is_in_southern_palace(the_origin_coords):
+                    return self.is_in_southern_palace(new_pos)
+                else: 
+                    raise ValueError('Advisor not detected in the palace!!! MovRuleSpecial_2: Chesspiece is not detected in both palaces')
+            elif the_one == imperial_guard[2]: 
+                if self.is_in_southern_palace(the_origin_coords):
+                    return self.is_in_southern_palace(new_pos)
+                elif self.is_in_northern_palace(the_origin_coords): 
+                    return self.is_in_northern_palace(new_pos)
+                else: 
+                    raise ValueError('This is bad, the General is missing in the palace!!! MovRuleSpecial_3: Chesspiece is not detected in both palaces')
+            else: 
+                raise ValueError('What is the world is this thing? Identify thyself!! MovRuleSpecial_4: Chesspiece does not belong to the special group')
 
     def is_interfered(self, old_pos, new_pos):
         return board_map[new_pos.y][new_pos.x] != self._IS_EMPTY
@@ -70,7 +133,7 @@ class ruleset(object):
         
         if is_in_board(new_pos): 
             if not is_interfered(board_map, old_pos, new_pos):
-                return  getattr(moving_ruleset, self.get_piece(old_pos).type)(old_pos, new_pos)
+                return  getattr(moving_ruleset, self.get_piece(old_pos).type)(old_pos, new_pos) and self.you_shall_not_pass(old_pos, new_pos)
             elif is_enemy(self.get_piece(old_pos), self.get_piece(new_pos)): 
                 #Update the map, the occupant get replaced by the new piece 
                 self.get_eaten(self.get_piece(old_pos), old_pos, new_pos)
