@@ -1,8 +1,8 @@
 from piece import Piece  
 
-''' 
-Ruleset for Xiangqi chesspiece: soldier, cannon, chariot, horse, elephant, advisor, general 
-''' 
+'''
+Ruleset for Xiangqi chesspiece: soldier, cannon, chariot, horse, elephant, advisor, general
+'''
 
 class Pos(object):
 
@@ -33,7 +33,7 @@ class ruleset(object):
     Horse: A piece placed at the middle of the longer stroke 
     Elephant: A piece placed at the middle of the diagonal jump (pos.x +/- 1, pos.y +/- 1) with pos is the elephant position
     
-
+    
     '''
 
     def __init__(self, board_map_2d):
@@ -56,36 +56,40 @@ class ruleset(object):
         self._IS_EMPTY = '  .  '
         self.board_map_2d = board_map_2d
     
-    def is_in_board(self, new_pos):
+    def is_in_board(self, pos):
         if ( pos.x >= 0 and pos.x <= 8) and ( pos.y >= 0 and pos.y <= 9):
             return True 
         else : return False 
 
-    def is_in_upper_half(self, new_pos):
+    def is_in_upper_half(self, pos):
         if ( pos.x >= self._DOMAIN_X_UPPER_HALF[0] and pos.x <= self._DOMAIN_X_UPPER_HALF[1]) and ( pos.y >= self._DOMAIN_Y_UPPER_HALF[0] and pos.y <= self._DOMAIN_Y_UPPER_HALF[1]):
             return True 
         else : return False 
     
-    def is_in_lower_half(self, new_pos):
+    def is_in_lower_half(self, pos):
         if ( pos.x >= self._DOMAIN_X_LOWER_HALF[0] and pos.x <= self._DOMAIN_X_LOWER_HALF[1]) and ( pos.y >= self._DOMAIN_Y_LOWER_HALF[0] and pos.y <= self._DOMAIN_Y_LOWER_HALF[1]):
             return True 
         else : return False 
 
-    def is_in_northern_palace(self, new_pos):
+    def is_in_northern_palace(self, pos):
         if ( pos.x >= self._DOMAIN_Y_NORTHERN_PALACE[0] and pos.x <= self._DOMAIN_X_NORTHERN_PALACE[1]) and ( pos.y >= self._DOMAIN_Y_NORTHERN_PALACE[0] and pos.y <= self._DOMAIN_Y_NORTHERN_PALACE[1]):
             return True 
         else : return False 
 
-    def is_in_southern_palace(self, new_pos):
+    def is_in_southern_palace(self, pos):
         if ( pos.x >= self._DOMAIN_X_SOUTHERN_PALACE[0] and pos.x <= self._DOMAIN_X_SOUTHERN_PALACE[1]) and ( pos.y >= self._DOMAIN_Y_SOUTHERN_PALACE[0] and pos.y <= self._DOMAIN_Y_SOUTHERN_PALACE[1]):
             return True 
         else : return False 
 
     def you_shall_not_pass(self, old_pos, new_pos):
+        '''
+        Determine if piece is in the group of elephant , advisor, general and apply its special rule of not leaving palace or country respectively
+        '''
+
         imperial_guard = ['elephant', 'advisor', 'general']
         the_one = self.get_piece(old_pos).type 
         if the_one in imperial_guard: 
-            the_origin_coords = the_one.history[-1]            
+            the_origin_coords = the_one.his_pos[-1]            
             if the_one == imperial_guard[0]: 
                 if self.is_in_lower_half(the_origin_coords): 
                     return self.is_in_lower_half(new_pos)
@@ -109,6 +113,12 @@ class ruleset(object):
                     raise ValueError('This is bad, the General is missing in the palace!!! MovRuleSpecial_3: Chesspiece is not detected in both palaces')
             else: 
                 raise ValueError('What is the world is this thing? Identify thyself!! MovRuleSpecial_4: Chesspiece does not belong to the special group')
+
+    def to_be_or_not_to_be(self, old_pos, new_pos): 
+        '''
+        Determine if the soldier has passed the river and apply moving rule accordingly 
+        '''
+        pass 
 
     def is_interfered(self, old_pos, new_pos):
         return board_map[new_pos.y][new_pos.x] != self._IS_EMPTY
