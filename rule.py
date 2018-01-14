@@ -28,7 +28,7 @@ class ruleset(object):
     Soldier: Same with general, no going backwards respectively to its general.
     
     ### Interfering rule: Define how a movement of a chesspiece cannot be carried out.
-    Canon: another piece in its straight pathway 
+    Cannon: another piece in its straight pathway 
     Chariot: another piece in its straight pathway 
     Horse: A piece placed at the middle of the longer stroke 
     Elephant: A piece placed at the middle of the diagonal jump (pos.x +/- 1, pos.y +/- 1) with pos is the elephant position
@@ -121,12 +121,16 @@ class ruleset(object):
         pass 
 
     def is_interfered(self, old_pos, new_pos):
-        the_one = ['horse', 'elephant']
+        the_one = ['horse', 'elephant', 'cannon', 'chariot']
         if self.get_piece(old_pos).type in the_one:  
             if self.get_piece(old_pos).type == the_one[0]: 
-                return self.board_map_2d[new_pos.y][new_pos.x] != self._IS_EMPTY and self.is_interfered_horse(old_pos, new_pos)
+                return self.board_map_2d[new_pos.y][new_pos.x] != self._IS_EMPTY or self.is_interfered_horse(old_pos, new_pos)
             elif self.get_piece(old_pos).type == the_one[1]:
-                return self.board_map_2d[new_pos.y][new_pos.x] != self._IS_EMPTY and self.is_interfered_elephant(old_pos, new_pos)
+                return self.board_map_2d[new_pos.y][new_pos.x] != self._IS_EMPTY or self.is_interfered_elephant(old_pos, new_pos)
+            elif self.get_piece(old_pos).type == the_one[2]: 
+                return self.board_map_2d[new_pos.y][new_pos.x] != self._IS_EMPTY or self.is_interfered_cannon(old_pos, new_pos)
+            elif self.get_piece(old_pos).type == the_one[3]:
+                return self.board_map_2d[new_pos.y][new_pos.x] != self._IS_EMPTY or self.is_interfered_chariot(old_pos, new_pos)
             else:
                 raise ValueError('MovRuleSpecial_5: Unknown piece. Piece is not either horse or elephant.')
         else:
@@ -141,7 +145,7 @@ class ruleset(object):
         elif buffer_y == -2: 
             ki_da.y = old_pos.y + buffer_y + 1
         elif abs(buffer_y) == 1: 
-            ki_da.y = old_pos.x + buffer_y
+            ki_da.y = old_pos.x 
         else: 
             return False 
 
@@ -150,14 +154,59 @@ class ruleset(object):
         elif buffer_x == -2:
             ki_da.x = old_pos.x + buffer_x + 1    
         elif abs(buffer_x) == 1: 
-            ki_da.x = old_pos.x + buffer_x 
+            ki_da.x = old_pos.x 
         else: 
             return False 
         
         return self.board_map_2d[ki_da.y][ki_da.x] == self._IS_EMPTY 
 
     def is_interfered_elephant(self, old_pos, new_pos):
-        return self.board_map_2d[old_pos.y + int((new_pos.y - old_pos.y)/2)][old_pos.x + int((new_pos.x - old_pos.x)/2)]
+        return self.board_map_2d[old_pos.y + int((new_pos.y - old_pos.y)/2)][old_pos.x + int((new_pos.x - old_pos.x)/2)] == self._IS_EMPTY
+
+    def is_interfered_cannon(self, old_pos, new_pos, eat = False):
+        check_list = []
+        if old_pos.x == new_pos.x : 
+            if old_pos.y > new_pos.y:
+                check_list = [ self.board_map_2d[index][old_pos.x] for  index in range(new_pos.y, old_pos.y + 1) if self.board_map_2d[index][old_pos.x] != self._IS_EMPTY]
+            else: 
+                check_list = [ self.board_map_2d[index][old_pos.x] for  index in range(old_pos.y, new_pos.y + 1) if self.board_map_2d[index][old_pos.x] != self._IS_EMPTY]
+        elif old_pos.y == new_pos.y: 
+            if old_pos.x > new_pos.x:
+                check_list = [ self.board_map_2d[old_pos.y][index] for  index in range(new_pos.x, old_pos.x + 1) if self.board_map_2d[index][old_pos.x] != self._IS_EMPTY]
+            else: 
+                check_list = [ self.board_map_2d[old_pos.y][index] for  index in range(old_pos.x, new_pos.x + 1) if self.board_map_2d[index][old_pos.x] != self._IS_EMPTY]
+        else: 
+            raise ValueError('MovRuleSpecial_9: Nonsense in position of cannon.')
+
+        if not eat:
+            if check_list == []:
+                return True
+            else: return False 
+        else: 
+            if len(check_list) == 1: 
+                return True
+            else: return False
+
+
+    def is_interfered_chariot(self, old_pos, new_pos):
+        check_list = []
+        if old_pos.x == new_pos.x : 
+            if old_pos.y > new_pos.y:
+                check_list = [ self.board_map_2d[index][old_pos.x] for  index in range(new_pos.y, old_pos.y + 1) if self.board_map_2d[index][old_pos.x] != self._IS_EMPTY]
+            else: 
+                check_list = [ self.board_map_2d[index][old_pos.x] for  index in range(old_pos.y, new_pos.y + 1) if self.board_map_2d[index][old_pos.x] != self._IS_EMPTY]
+        elif old_pos.y == new_pos.y: 
+            if old_pos.x > new_pos.x:
+                check_list = [ self.board_map_2d[old_pos.y][index] for  index in range(new_pos.x, old_pos.x + 1) if self.board_map_2d[index][old_pos.x] != self._IS_EMPTY]
+            else: 
+                check_list = [ self.board_map_2d[old_pos.y][index] for  index in range(old_pos.x, new_pos.x + 1) if self.board_map_2d[index][old_pos.x] != self._IS_EMPTY]
+        else: 
+            raise ValueError('MovRuleSpecial_10: Nonsense in position of chariot.')
+
+        if check_list != []:
+            return False
+        else: 
+            return True 
 
     def is_enemy(self, Piece_1, Piece_2):
         return Piece_1.team != Piece_2.team
@@ -169,35 +218,50 @@ class ruleset(object):
         self.board_map_2d[new_pos.y][new_pos.x] = eater 
         self.board_map_2d[old_pos.y][old_pos.x] = self._IS_EMPTY
 
+    def can_I_eat_this(self, old_pos, new_pos): 
+        the_ones = ['cannon', 'elephant', 'horse','chariot']
+        if self.get_piece(old_pos).type not in the_ones: 
+            return True 
+        elif self.get_piece(old_pos).type == the_ones[0]: 
+            return self.is_interfered_cannon(old_pos, new_pos, eat = True)
+        elif self.get_piece(old_pos).type == the_ones[1]:
+            return self.is_interfered_elephant(old_pos, new_pos)
+        elif self.get_piece(old_pos).type == the_ones[2]:
+            return self.is_interfered_horse(old_pos, new_pos)
+        elif self.get_piece(old_pos).type == the_ones[3]:
+            return self.is_interfered_chariot(old_pos, new_pos)
+        else: 
+            raise ValueError('MovRuleSpecial_8: Unknown chesspiece.')
+
+
     def move_allowed(self, old_pos, new_pos): 
         '''
         Call functions from moving_ruleset by the names.
-
-        Soldier case is not done. 
-        TO DO: define Piece object type further into smaller categories of soldiers 
         '''
-        
-        if is_in_board(new_pos): 
+        if new_pos.x == old_pos.x and new_pos.y == old_pos.y: 
+            return True 
+        elif is_in_board(new_pos): 
             if not is_interfered(board_map, old_pos, new_pos):
                 if self.get_piece(old_pos).type != 'soldier':
                     return  getattr(moving_ruleset, self.get_piece(old_pos).type)(old_pos, new_pos) and self.you_shall_not_pass(old_pos, new_pos)
                 elif self.get_piece(old_pos).pass_river: 
-                    if self.is_in_northern_palace(self.get_piece(old_pos).his_pos[0]):
+                    if self.is_in_upper_half(self.get_piece(old_pos).his_pos[0]):
                         return moving_ruleset.soldier_passed_river_upper_half(old_pos, new_pos)
-                    elif self.is_in_southern_palace(self.get_piece(old_pos).his_pos[0]):
+                    elif self.is_in_lower_half(self.get_piece(old_pos).his_pos[0]):
                         return moving_ruleset.soldier_passed_river_lower_half(old_pos, new_pos)
                     else: 
                         raise ValueError('MovRuleSpecial_6: Unknown soldier position with Piece.pass_river = True')
                 else: 
-                    if self.is_in_northern_palace(self.get_piece(old_pos).his_pos[0]):
+                    if self.is_in_upper_half(self.get_piece(old_pos).his_pos[0]):
                         return moving_ruleset.soldier_upper_half(old_pos, new_pos)
-                    elif self.is_in_southern_palace(self.get_piece(old_pos).his_pos[0]):
+                    elif self.is_in_lower_half(self.get_piece(old_pos).his_pos[0]):
                         return moving_ruleset.soldier_lower_half(old_pos, new_pos)
                     else: 
                         raise ValueError('MovRuleSpecial_7: Unknown soldier position with Piece.pass_river = False')
             elif is_enemy(self.get_piece(old_pos), self.get_piece(new_pos)): 
-                #Update the map, the occupant get replaced by the new piece 
-                self.get_eaten(self.get_piece(old_pos), old_pos, new_pos)
+                #Update the map, the occupant get replaced by the new piece
+                if self.can_I_eat_this(old_pos, new_pos) : 
+                    self.get_eaten(self.get_piece(old_pos), old_pos, new_pos)
             else: return False 
         else: return False 
 
