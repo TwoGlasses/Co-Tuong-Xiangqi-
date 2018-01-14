@@ -10,7 +10,7 @@ class Pos(object):
     A class for storing position of chess piece
     ''' 
 
-    def __init__(self, x, y):
+    def __init__(self, x = -1, y = -1):
         self.x = x
         self.y = y 
     
@@ -121,7 +121,43 @@ class ruleset(object):
         pass 
 
     def is_interfered(self, old_pos, new_pos):
-        return board_map[new_pos.y][new_pos.x] != self._IS_EMPTY
+        the_one = ['horse', 'elephant']
+        if self.get_piece(old_pos).type in the_one:  
+            if self.get_piece(old_pos).type == the_one[0]: 
+                return self.board_map_2d[new_pos.y][new_pos.x] != self._IS_EMPTY and self.is_interfered_horse(old_pos, new_pos)
+            elif self.get_piece(old_pos).type == the_one[1]:
+                return self.board_map_2d[new_pos.y][new_pos.x] != self._IS_EMPTY and self.is_interfered_elephant(old_pos, new_pos)
+            else:
+                raise ValueError('MovRuleSpecial_5: Unknown piece. Piece is not either horse or elephant.')
+        else:
+            return self.board_map_2d[new_pos.y][new_pos.x] != self._IS_EMPTY
+
+    def is_interfered_horse(self, old_pos, new_pos):
+        buffer_x = new_pos.x - old_pos.x
+        buffer_y = new_pos.y - old_pos.y
+        ki_da    = Pos()
+        if buffer_y == 2: 
+            ki_da.y = old_pos.y + buffer_y - 1
+        elif buffer_y == -2: 
+            ki_da.y = old_pos.y + buffer_y + 1
+        elif abs(buffer_y) == 1: 
+            ki_da.y = old_pos.x + buffer_y
+        else: 
+            return False 
+
+        if buffer_x == 2: 
+            ki_da.x = old_pos.x + buffer_x - 1
+        elif buffer_x == -2:
+            ki_da.x = old_pos.x + buffer_x + 1    
+        elif abs(buffer_x) == 1: 
+            ki_da.x = old_pos.x + buffer_x 
+        else: 
+            return False 
+        
+        return self.board_map_2d[ki_da.y][ki_da.x] == self._IS_EMPTY 
+
+    def is_interfered_elephant(self, old_pos, new_pos):
+        return self.board_map_2d[old_pos.y + int((new_pos.y - old_pos.y)/2)][old_pos.x + int((new_pos.x - old_pos.x)/2)]
 
     def is_enemy(self, Piece_1, Piece_2):
         return Piece_1.team != Piece_2.team
@@ -143,7 +179,22 @@ class ruleset(object):
         
         if is_in_board(new_pos): 
             if not is_interfered(board_map, old_pos, new_pos):
-                return  getattr(moving_ruleset, self.get_piece(old_pos).type)(old_pos, new_pos) and self.you_shall_not_pass(old_pos, new_pos)
+                if self.get_piece(old_pos).type != 'soldier':
+                    return  getattr(moving_ruleset, self.get_piece(old_pos).type)(old_pos, new_pos) and self.you_shall_not_pass(old_pos, new_pos)
+                elif self.get_piece(old_pos).pass_river: 
+                    if self.is_in_northern_palace(self.get_piece(old_pos).his_pos[0]):
+                        return moving_ruleset.soldier_passed_river_upper_half(old_pos, new_pos)
+                    elif self.is_in_southern_palace(self.get_piece(old_pos).his_pos[0]):
+                        return moving_ruleset.soldier_passed_river_lower_half(old_pos, new_pos)
+                    else: 
+                        raise ValueError('MovRuleSpecial_6: Unknown soldier position with Piece.pass_river = True')
+                else: 
+                    if self.is_in_northern_palace(self.get_piece(old_pos).his_pos[0]):
+                        return moving_ruleset.soldier_upper_half(old_pos, new_pos)
+                    elif self.is_in_southern_palace(self.get_piece(old_pos).his_pos[0]):
+                        return moving_ruleset.soldier_lower_half(old_pos, new_pos)
+                    else: 
+                        raise ValueError('MovRuleSpecial_7: Unknown soldier position with Piece.pass_river = False')
             elif is_enemy(self.get_piece(old_pos), self.get_piece(new_pos)): 
                 #Update the map, the occupant get replaced by the new piece 
                 self.get_eaten(self.get_piece(old_pos), old_pos, new_pos)
@@ -160,16 +211,25 @@ class moving_ruleset(object):
         pass
 
     def soldier_upper_half(self, old_pos, new_pos):
+        '''
+        Soldier from the northern country 
+        '''
         if new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == 1: 
             return True 
         else : return False 
 
     def soldier_lower_half(self, old_pos, new_pos): 
+        '''
+        Soldier from the southern country 
+        '''
         if new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == -1:
             return True 
         else: return False
 
     def soldier_passed_river_upper_half(self, old_pos, new_pos): 
+        '''
+        Soldier from the northern country moves in the southern country 
+        '''
         if ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == 1 ) or  \
             ( new_pos.x - old_pos.x == 1 and new_pos.y - old.pos.y == 0) or \
                 ( new_pos.x - old_pos.x == -1 and new_pos.y - old_pos.y == 0 ): #Going to the right
@@ -177,6 +237,9 @@ class moving_ruleset(object):
         else: return False
 
     def soldier_passed_river_lower_half(self, old_pos, new_pos):
+        '''
+        Soldier from the southern country moves in the northern country
+        '''
         if ( new_pos.x - old_pos.x == 0 and new_pos.y - old_pos.y == -1 ) or \
             ( new_pos.x - old_pos.x == 1 and new_pos.y - old.pos.y == 0) or \
                 ( new_pos.x - old_pos.x == -1 and new_pos.y - old_pos.y == 0 ): #Going to the right
